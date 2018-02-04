@@ -1,5 +1,11 @@
 extern crate roam;
+extern crate pancurses;
+use pancurses::{initscr, endwin};
 
 fn main() {
-    println!("Hooked! {}", roam::lib_func());
+    let window = initscr();
+    window.printw("Hello, Rust");
+    window.refresh();
+    window.getch();
+    endwin();
 }
