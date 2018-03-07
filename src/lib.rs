@@ -1,3 +1,5 @@
+pub mod map;
+
 pub fn lib_func() -> String {
     return String::from("Hello!");
 }
