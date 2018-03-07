@@ -1,6 +1,6 @@
 extern crate roam;
 extern crate pancurses;
-use pancurses::{initscr, endwin, Input, noecho};
+use pancurses::{initscr, endwin, Input};
 use roam::map::{Dungeon, generate_map};
 
 fn raster_screen(window: &pancurses::Window, dungeon: &Dungeon) {
@@ -51,10 +51,9 @@ fn raster_screen(window: &pancurses::Window, dungeon: &Dungeon) {
 
 fn main() {
     let window = initscr();
-    window.printw("Hello, Rust");
     window.keypad(true);
-    pancurses::curs_set(0);
-    noecho();
+    pancurses::curs_set(0); // hide insertion pointer
+    pancurses::noecho();
 
     let dungeon = generate_map();
 
