@@ -57,14 +57,22 @@ fn main() {
     pancurses::noecho();
 
     let dungeon = generate_map();
-    let game_state = GameState { offset_x: 0, offset_y: 0 };
+    let mut game_state = GameState { offset_x: 0, offset_y: 0 };
 
     loop {
         raster_screen(&window, &dungeon, &game_state);
         window.refresh();
 
         match window.getch() {
-            //Some(Input::Character(c)) => { window.addch(c); },
+            Some(Input::Character(c)) => {
+                match c {
+                    'h' => game_state.offset_x -= 1,
+                    'j' => game_state.offset_y += 1,
+                    'k' => game_state.offset_y -= 1,
+                    'l' => game_state.offset_x += 1,
+                    _ => break
+                }
+            },
             Some(Input::KeyDC) => break,
             Some(Input::KeyResize) => {
                 pancurses::resize_term(0, 0);
