@@ -52,7 +52,7 @@ fn generate_room(d: &mut Dungeon, left: usize, top: usize, width: usize, height:
     }
 
     // Generate the room with a simple flood fill
-    d.flood_fill(left, top, width, height, ' ');
+    d.flood_fill(left, top, width, height, '.');
     true
 }
 
