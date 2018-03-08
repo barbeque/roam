@@ -64,6 +64,7 @@ pub fn generate_map() -> Dungeon {
     let mut y_range = Range::<usize>::new(1, d.get_height() - 1);
 
     let number_of_rooms = 12;
+    let minimum_room_size = 4;
 
     for _i in 0..number_of_rooms {
         let x = x_range.sample(&mut rng);
@@ -71,13 +72,16 @@ pub fn generate_map() -> Dungeon {
         let max_width = (d.get_width() - 1) - x;
         let max_height = (d.get_height() - 1) - y;
 
-        if max_height < 4 || max_width < 4 {
+        if max_height <= minimum_room_size || max_width <= minimum_room_size {
             // FIXME: use a smarter range instead of this hack
             continue;
         }
 
-        let mut width_range = Range::<usize>::new(4, max_width);
-        let mut height_range = Range::<usize>::new(4, max_height);
+        let mut width_range = Range::<usize>::new(minimum_room_size, max_width);
+        let mut height_range = Range::<usize>::new(minimum_room_size, max_height);
+
+        // FIXME: i feel like rooms should be 'wider' and not 'taller' in general
+        // to be more rogue-ish
         let room_width = width_range.sample(&mut rng);
         let room_height = height_range.sample(&mut rng);
 
