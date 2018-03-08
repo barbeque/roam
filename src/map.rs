@@ -63,7 +63,7 @@ pub fn generate_map() -> Dungeon {
     let mut x_range = Range::<usize>::new(1, d.get_width() - 1);
     let mut y_range = Range::<usize>::new(1, d.get_height() - 1);
 
-    let number_of_rooms = 12;
+    let number_of_rooms = 35;
     let minimum_room_size = 4;
 
     for _i in 0..number_of_rooms {
