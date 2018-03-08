@@ -51,6 +51,8 @@ fn main() {
     let dungeon = generate_map();
     let mut game_state = GameState { offset_x: 0, offset_y: 0 };
 
+    const SCROLL_SPEED : i32 = 3;
+
     loop {
         raster_screen(&window, &dungeon, &game_state);
         window.refresh();
@@ -58,13 +60,17 @@ fn main() {
         match window.getch() {
             Some(Input::Character(c)) => {
                 match c {
-                    'h' => game_state.offset_x -= 3,
-                    'j' => game_state.offset_y += 3,
-                    'k' => game_state.offset_y -= 3,
-                    'l' => game_state.offset_x += 3,
+                    'h' => game_state.offset_x -= SCROLL_SPEED,
+                    'j' => game_state.offset_y += SCROLL_SPEED,
+                    'k' => game_state.offset_y -= SCROLL_SPEED,
+                    'l' => game_state.offset_x += SCROLL_SPEED,
                     _ => break
                 }
             },
+            Some(Input::KeyLeft) => game_state.offset_x -= SCROLL_SPEED,
+            Some(Input::KeyUp) => game_state.offset_y -= SCROLL_SPEED,
+            Some(Input::KeyDown) => game_state.offset_y += SCROLL_SPEED,
+            Some(Input::KeyRight) => game_state.offset_x += SCROLL_SPEED,
             Some(Input::KeyDC) => break,
             Some(Input::KeyResize) => {
                 pancurses::resize_term(0, 0);
