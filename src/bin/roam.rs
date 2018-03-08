@@ -22,7 +22,7 @@ fn raster_screen(window: &pancurses::Window, dungeon: &Dungeon, state: &GameStat
             continue;
         }
 
-        for x in 0..(max_x - 1) {
+        for x in 0..(max_x) {
             let tile_x = state.offset_x + x;
 
             if tile_x < 0 || tile_x as usize >= dungeon.get_width() {
@@ -34,17 +34,9 @@ fn raster_screen(window: &pancurses::Window, dungeon: &Dungeon, state: &GameStat
         }
     }
 
-    // Draw window border/UI
-    let k_border = "*";
-
-    for y in 0..max_y {
-        window.mvprintw(y, 0, k_border);
-        window.mvprintw(y, max_x - 1, k_border);
-    }
-
-    for x in 0..max_x {
-        window.mvprintw(0, x, k_border);
-        window.mvprintw(max_y - 1, x, k_border);
+    // Draw window UI
+    for x in 0..(max_x) {
+        window.mvprintw(max_y - 1, x, "*");
     }
 
     window.mvprintw(max_y - 1, 3, "HP: 10/10");
