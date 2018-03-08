@@ -1,6 +1,7 @@
 extern crate rand;
 
 pub mod map;
+pub mod entity;
 
 pub fn lib_func() -> String {
     return String::from("Hello!");
