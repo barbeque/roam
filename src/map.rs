@@ -23,8 +23,16 @@ impl Dungeon {
     pub fn get_at(self: &Dungeon, x: usize, y: usize) -> char {
         self.tiles[y * MAP_WIDTH + x]
     }
+
+    pub fn set_at(self: &mut Dungeon, x: usize, y: usize, val: char) {
+        self.tiles[y * MAP_WIDTH + x] = val;
+    }
 }
 
 pub fn generate_map() -> Dungeon {
-    Dungeon::new()
+    let mut d = Dungeon::new();
+
+    d.set_at(10, 10, ' ');
+
+    d
 }
