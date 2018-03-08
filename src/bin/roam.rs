@@ -73,6 +73,12 @@ fn main() {
     let dungeon = generate_map();
     let mut game_state = GameState::new();
 
+    // HACK: For now, find the location of the closest room and put the player in it
+    let (x, y) = dungeon.find_room_tile();
+    game_state.player.location_x = x;
+    game_state.player.location_y = y;
+
+    // Continue
     const SCROLL_SPEED : i32 = 3;
 
     loop {

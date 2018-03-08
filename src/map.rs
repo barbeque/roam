@@ -38,6 +38,17 @@ impl Dungeon {
             }
         }
     }
+
+    pub fn find_room_tile(self: &Dungeon) -> (i32, i32) {
+        for y in 0..MAP_HEIGHT {
+            for x in 0..MAP_WIDTH {
+                if self.get_at(x, y) == '.' {
+                    return (x as i32, y as i32);
+                }
+            }
+        }
+        (0, 0)
+    }
 }
 
 fn generate_room(d: &mut Dungeon, left: usize, top: usize, width: usize, height: usize) -> bool {
