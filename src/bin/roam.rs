@@ -66,10 +66,10 @@ fn main() {
         match window.getch() {
             Some(Input::Character(c)) => {
                 match c {
-                    'h' => game_state.offset_x -= 1,
-                    'j' => game_state.offset_y += 1,
-                    'k' => game_state.offset_y -= 1,
-                    'l' => game_state.offset_x += 1,
+                    'h' => game_state.offset_x -= 3,
+                    'j' => game_state.offset_y += 3,
+                    'k' => game_state.offset_y -= 3,
+                    'l' => game_state.offset_x += 3,
                     _ => break
                 }
             },
