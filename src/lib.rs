@@ -1,3 +1,5 @@
+extern crate rand;
+
 pub mod map;
 
 pub fn lib_func() -> String {
