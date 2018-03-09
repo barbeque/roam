@@ -56,6 +56,13 @@ fn generate_room(d: &mut Dungeon, left: usize, top: usize, width: usize, height:
     true
 }
 
+struct Room {
+    left: usize,
+    top: usize,
+    width: usize,
+    height: usize
+}
+
 pub fn generate_map() -> Dungeon {
     let mut d = Dungeon::new();
     let mut rng = rand::thread_rng();
@@ -65,6 +72,8 @@ pub fn generate_map() -> Dungeon {
 
     let number_of_rooms = 35;
     let minimum_room_size = 4;
+
+    let mut rooms = Vec::<Room>::new();
 
     for _i in 0..number_of_rooms {
         let x = x_range.sample(&mut rng);
@@ -85,7 +94,10 @@ pub fn generate_map() -> Dungeon {
         let room_width = width_range.sample(&mut rng);
         let room_height = height_range.sample(&mut rng);
 
-        generate_room(&mut d, x, y, room_width, room_height);
+        if generate_room(&mut d, x, y, room_width, room_height) {
+            // Track for later, so we can draw hallways
+            rooms.push(Room { left: x, top: y, width: room_width, height: room_height });
+        }
     }
 
     d
