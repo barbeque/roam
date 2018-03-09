@@ -2,10 +2,28 @@ extern crate roam;
 extern crate pancurses;
 use pancurses::{initscr, endwin, Input};
 use roam::map::{Dungeon, generate_map};
+use roam::entity::{Entity};
 
 struct GameState {
     offset_x: i32,
-    offset_y: i32
+    offset_y: i32,
+    player: Entity
+}
+impl GameState {
+    fn new() -> GameState {
+        GameState {
+            offset_x: 0,
+            offset_y: 0,
+            player: Entity::new()
+        }
+    }
+}
+
+fn raster_entity(window: &pancurses::Window, dungeon: &Dungeon, state: &GameState, entity: &Entity) {
+    // figure out where on screen the real position is
+    let screen_x = entity.location_x - state.offset_x;
+    let screen_y = entity.location_y - state.offset_y;
+    window.mvprintw(screen_y, screen_x, &entity.view.to_string());
 }
 
 fn raster_screen(window: &pancurses::Window, dungeon: &Dungeon, state: &GameState) {
@@ -22,7 +40,7 @@ fn raster_screen(window: &pancurses::Window, dungeon: &Dungeon, state: &GameStat
             continue;
         }
 
-        for x in 0..(max_x - 1) {
+        for x in 0..(max_x) {
             let tile_x = state.offset_x + x;
 
             if tile_x < 0 || tile_x as usize >= dungeon.get_width() {
@@ -34,20 +52,16 @@ fn raster_screen(window: &pancurses::Window, dungeon: &Dungeon, state: &GameStat
         }
     }
 
-    // Draw window border/UI
-    let k_border = "*";
+    // Display entities - just player for now
+    raster_entity(&window, &dungeon, &state, &state.player);
 
-    for y in 0..max_y {
-        window.mvprintw(y, 0, k_border);
-        window.mvprintw(y, max_x - 1, k_border);
+    // Draw window UI
+    for x in 0..(max_x) {
+        window.mvprintw(max_y - 1, x, "*");
     }
 
-    for x in 0..max_x {
-        window.mvprintw(0, x, k_border);
-        window.mvprintw(max_y - 1, x, k_border);
-    }
-
-    window.mvprintw(max_y - 1, 3, "HP: 10/10");
+    window.mvprintw(max_y - 1, 3,
+        &format!("HP: {}/{}", state.player.hit_points, state.player.max_hit_points));
 }
 
 fn main() {
@@ -57,7 +71,15 @@ fn main() {
     pancurses::noecho();
 
     let dungeon = generate_map();
-    let mut game_state = GameState { offset_x: 0, offset_y: 0 };
+    let mut game_state = GameState::new();
+
+    // HACK: For now, find the location of the closest room and put the player in it
+    let (x, y) = dungeon.find_room_tile();
+    game_state.player.location_x = x;
+    game_state.player.location_y = y;
+
+    // Continue
+    const SCROLL_SPEED : i32 = 3;
 
     loop {
         raster_screen(&window, &dungeon, &game_state);
@@ -66,13 +88,17 @@ fn main() {
         match window.getch() {
             Some(Input::Character(c)) => {
                 match c {
-                    'h' => game_state.offset_x -= 3,
-                    'j' => game_state.offset_y += 3,
-                    'k' => game_state.offset_y -= 3,
-                    'l' => game_state.offset_x += 3,
+                    'h' => game_state.offset_x -= SCROLL_SPEED,
+                    'j' => game_state.offset_y += SCROLL_SPEED,
+                    'k' => game_state.offset_y -= SCROLL_SPEED,
+                    'l' => game_state.offset_x += SCROLL_SPEED,
                     _ => break
                 }
             },
+            Some(Input::KeyLeft) => game_state.offset_x -= SCROLL_SPEED,
+            Some(Input::KeyUp) => game_state.offset_y -= SCROLL_SPEED,
+            Some(Input::KeyDown) => game_state.offset_y += SCROLL_SPEED,
+            Some(Input::KeyRight) => game_state.offset_x += SCROLL_SPEED,
             Some(Input::KeyDC) => break,
             Some(Input::KeyResize) => {
                 pancurses::resize_term(0, 0);
