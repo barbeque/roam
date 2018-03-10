@@ -16,6 +16,10 @@ mod tests {
     #[test]
     fn manhattan_distance_is_sane() {
         assert_eq!(manhattan_distance(2, 2, 0, 0), 4);
+        assert_eq!(manhattan_distance(2, -2, 0, 0), 4);
+        assert_eq!(manhattan_distance(-2, 2, 0, 0), 4);
+        assert_eq!(manhattan_distance(-2, -2, 0, 0), 4);
+        assert_eq!(manhattan_distance(0, 0, 0, 0), 0);
     }
     #[test]
     fn pythagorean_distance_is_sane() {

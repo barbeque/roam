@@ -117,6 +117,13 @@ pub fn generate_map() -> Dungeon {
 #[cfg(test)]
 mod dungeon_tests {
     #[test]
+    fn dimensions_are_nonzero() {
+        let dungeon = ::map::Dungeon::new();
+        assert!(dungeon.get_width() > 0);
+        assert!(dungeon.get_height() > 0);
+    }
+
+    #[test]
     fn get_at_set_at_works() {
         let mut dungeon = ::map::Dungeon::new();
         assert_eq!(dungeon.get_at(0, 0), '#');
