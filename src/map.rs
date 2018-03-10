@@ -117,13 +117,20 @@ pub fn generate_map() -> Dungeon {
 #[cfg(test)]
 mod dungeon_tests {
     #[test]
-    fn flood_fill_works() {
+    fn get_at_set_at_works() {
         let mut dungeon = ::map::Dungeon::new();
         assert_eq!(dungeon.get_at(0, 0), '#');
+        dungeon.set_at(0, 0, '&');
+        assert_eq!(dungeon.get_at(0, 0), '&');
+    }
+
+    #[test]
+    fn flood_fill_works() {
+        let mut dungeon = ::map::Dungeon::new();
 
         dungeon.flood_fill(10, 10, 10, 10, '$');
-        for x in (10..20) {
-            for y in (10..20) {
+        for x in 10..20 {
+            for y in 10..20 {
                 assert_eq!(dungeon.get_at(x, y), '$');
             }
         }
