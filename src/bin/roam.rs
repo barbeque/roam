@@ -7,30 +7,33 @@ use roam::entity::{Entity};
 struct GameState {
     offset_x: i32,
     offset_y: i32,
-    player: Entity
+    player: Entity,
+    dungeon: Dungeon
 }
 impl GameState {
-    fn new() -> GameState {
+    fn new(dungeon: Dungeon) -> GameState {
         GameState {
             offset_x: 0,
             offset_y: 0,
-            player: Entity::new()
+            player: Entity::new(),
+            dungeon: dungeon
         }
     }
 }
 
-fn raster_entity(window: &pancurses::Window, dungeon: &Dungeon, state: &GameState, entity: &Entity) {
+fn raster_entity(window: &pancurses::Window, state: &GameState, entity: &Entity) {
     // figure out where on screen the real position is
     let screen_x = entity.location_x - state.offset_x;
     let screen_y = entity.location_y - state.offset_y;
     window.mvprintw(screen_y, screen_x, &entity.view.to_string());
 }
 
-fn raster_screen(window: &pancurses::Window, dungeon: &Dungeon, state: &GameState) {
+fn raster_screen(window: &pancurses::Window, state: &GameState) {
     window.erase();
 
     let max_x = window.get_max_x();
     let max_y = window.get_max_y();
+    let dungeon = &state.dungeon;
 
     // Draw dungeon map
     for y in 0..(max_y - 1) {
@@ -53,7 +56,7 @@ fn raster_screen(window: &pancurses::Window, dungeon: &Dungeon, state: &GameStat
     }
 
     // Display entities - just player for now
-    raster_entity(&window, &dungeon, &state, &state.player);
+    raster_entity(&window, &state, &state.player);
 
     // Draw window UI
     for x in 0..(max_x) {
@@ -64,6 +67,23 @@ fn raster_screen(window: &pancurses::Window, dungeon: &Dungeon, state: &GameStat
         &format!("HP: {}/{}", state.player.hit_points, state.player.max_hit_points));
 }
 
+fn move_player(state: &mut GameState, dx: i32, dy: i32) -> bool {
+    // TODO: Scroll offset_x, offset_y as the player 'moves off screen'
+    let proposed_x = state.player.location_x + dx; // TODO: collision ray in case dx > 1
+    let proposed_y = state.player.location_y + dy; // TODO: collision ray in case dy > 1
+
+    if proposed_x >= 0 && proposed_y >= 0
+        && proposed_x < state.dungeon.get_width() as i32 && proposed_y < state.dungeon.get_height() as i32 {
+        if state.dungeon.get_at(proposed_x as usize, proposed_y as usize) != '#' { // hack for now
+            state.player.location_x = proposed_x;
+            state.player.location_y = proposed_y;
+            return true;
+        }
+    }
+
+    false
+}
+
 fn main() {
     let window = initscr();
     window.keypad(true);
@@ -71,34 +91,32 @@ fn main() {
     pancurses::noecho();
 
     let dungeon = generate_map();
-    let mut game_state = GameState::new();
+    let mut game_state = GameState::new(dungeon);
 
     // HACK: For now, find the location of the closest room and put the player in it
-    let (x, y) = dungeon.find_room_tile();
+    let (x, y) = game_state.dungeon.find_room_tile();
     game_state.player.location_x = x;
     game_state.player.location_y = y;
 
     // Continue
-    const SCROLL_SPEED : i32 = 3;
-
     loop {
-        raster_screen(&window, &dungeon, &game_state);
+        raster_screen(&window, &game_state);
         window.refresh();
 
         match window.getch() {
             Some(Input::Character(c)) => {
                 match c {
-                    'h' => game_state.offset_x -= SCROLL_SPEED,
-                    'j' => game_state.offset_y += SCROLL_SPEED,
-                    'k' => game_state.offset_y -= SCROLL_SPEED,
-                    'l' => game_state.offset_x += SCROLL_SPEED,
+                    'h' => { move_player(&mut game_state, -1, 0); },
+                    'j' => { move_player(&mut game_state, 0, 1); },
+                    'k' => { move_player(&mut game_state, 0, -1); },
+                    'l' => { move_player(&mut game_state, 1, 0); },
                     _ => break
                 }
             },
-            Some(Input::KeyLeft) => game_state.offset_x -= SCROLL_SPEED,
-            Some(Input::KeyUp) => game_state.offset_y -= SCROLL_SPEED,
-            Some(Input::KeyDown) => game_state.offset_y += SCROLL_SPEED,
-            Some(Input::KeyRight) => game_state.offset_x += SCROLL_SPEED,
+            Some(Input::KeyLeft) => { move_player(&mut game_state, -1, 0); },
+            Some(Input::KeyUp) => { move_player(&mut game_state, 0, -1); },
+            Some(Input::KeyDown) => { move_player(&mut game_state, 0, 1); },
+            Some(Input::KeyRight) => { move_player(&mut game_state, 1, 0); },
             Some(Input::KeyDC) => break,
             Some(Input::KeyResize) => {
                 pancurses::resize_term(0, 0);
