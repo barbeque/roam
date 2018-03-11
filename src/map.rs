@@ -1,4 +1,5 @@
 use rand;
+use rand::Rng;
 use rand::distributions::{Sample, Range};
 
 const MAP_WIDTH : usize = 100;
@@ -74,6 +75,15 @@ struct Room {
     height: usize
 }
 
+impl PartialEq for Room {
+    fn eq(&self, other: &Room) -> bool {
+        self.left == other.left &&
+        self.top == other.top &&
+        self.width == other.width &&
+        self.height == other.height
+    }
+}
+
 pub fn generate_map() -> Dungeon {
     let mut d = Dungeon::new();
     let mut rng = rand::thread_rng();
@@ -113,10 +123,10 @@ pub fn generate_map() -> Dungeon {
 
     let hallways = 20;
     for _i in 0..hallways {
-        let roomA = rng.choose(&rooms);
-        let roomB = rng.choose(&rooms);
+        let room_a = rng.choose(&rooms).unwrap();
+        let room_b = rng.choose(&rooms).unwrap();
 
-        if roomA == roomB {
+        if room_a == room_b {
             continue; // bail on this one
         }
     }
@@ -131,6 +141,14 @@ mod dungeon_tests {
         let dungeon = ::map::Dungeon::new();
         assert!(dungeon.get_width() > 0);
         assert!(dungeon.get_height() > 0);
+    }
+
+    #[test]
+    fn room_equality() {
+        let a = ::map::Room { left: 10, top: 10, width: 100, height: 55 };
+        assert!(a == a);
+        let b = ::map::Room { left: 9, top: 10, width: 100, height: 55 };
+        assert!(a != b);
     }
 
     #[test]
