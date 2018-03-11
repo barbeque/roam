@@ -111,6 +111,16 @@ pub fn generate_map() -> Dungeon {
         }
     }
 
+    let hallways = 20;
+    for _i in 0..hallways {
+        let roomA = rng.choose(&rooms);
+        let roomB = rng.choose(&rooms);
+
+        if roomA == roomB {
+            continue; // bail on this one
+        }
+    }
+
     d
 }
 
