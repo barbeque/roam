@@ -3,8 +3,10 @@ extern crate pancurses;
 use pancurses::{initscr, endwin, Input};
 use roam::map::{Dungeon, generate_map};
 use roam::entity::{Entity};
+use roam::update::{move_player};
 
 struct GameState {
+    // TODO: this probably should be moved into the lib as well
     offset_x: i32,
     offset_y: i32,
     player: Entity,
@@ -67,23 +69,6 @@ fn raster_screen(window: &pancurses::Window, state: &GameState) {
         &format!("HP: {}/{}", state.player.hit_points, state.player.max_hit_points));
 }
 
-fn move_player(state: &mut GameState, dx: i32, dy: i32) -> bool {
-    // TODO: Scroll offset_x, offset_y as the player 'moves off screen'
-    let proposed_x = state.player.location_x + dx; // TODO: collision ray in case dx > 1
-    let proposed_y = state.player.location_y + dy; // TODO: collision ray in case dy > 1
-
-    if proposed_x >= 0 && proposed_y >= 0
-        && proposed_x < state.dungeon.get_width() as i32 && proposed_y < state.dungeon.get_height() as i32 {
-        if state.dungeon.get_at(proposed_x as usize, proposed_y as usize) != '#' { // hack for now
-            state.player.location_x = proposed_x;
-            state.player.location_y = proposed_y;
-            return true;
-        }
-    }
-
-    false
-}
-
 fn main() {
     let window = initscr();
     window.keypad(true);
@@ -106,17 +91,17 @@ fn main() {
         match window.getch() {
             Some(Input::Character(c)) => {
                 match c {
-                    'h' => { move_player(&mut game_state, -1, 0); },
-                    'j' => { move_player(&mut game_state, 0, 1); },
-                    'k' => { move_player(&mut game_state, 0, -1); },
-                    'l' => { move_player(&mut game_state, 1, 0); },
+                    'h' => { move_player(&mut game_state.player, &game_state.dungeon, -1, 0); },
+                    'j' => { move_player(&mut game_state.player, &game_state.dungeon, 0, 1); },
+                    'k' => { move_player(&mut game_state.player, &game_state.dungeon, 0, -1); },
+                    'l' => { move_player(&mut game_state.player, &game_state.dungeon, 1, 0); },
                     _ => break
                 }
             },
-            Some(Input::KeyLeft) => { move_player(&mut game_state, -1, 0); },
-            Some(Input::KeyUp) => { move_player(&mut game_state, 0, -1); },
-            Some(Input::KeyDown) => { move_player(&mut game_state, 0, 1); },
-            Some(Input::KeyRight) => { move_player(&mut game_state, 1, 0); },
+            Some(Input::KeyLeft) => { move_player(&mut game_state.player, &game_state.dungeon, -1, 0); },
+            Some(Input::KeyUp) => { move_player(&mut game_state.player, &game_state.dungeon, 0, -1); },
+            Some(Input::KeyDown) => { move_player(&mut game_state.player, &game_state.dungeon, 0, 1); },
+            Some(Input::KeyRight) => { move_player(&mut game_state.player, &game_state.dungeon, 1, 0); },
             Some(Input::KeyDC) => break,
             Some(Input::KeyResize) => {
                 pancurses::resize_term(0, 0);
