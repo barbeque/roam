@@ -1,9 +1,9 @@
 use rand;
 use rand::Rng;
-use rand::distributions::{Sample, Range};
+use rand::distributions::{Range, Sample};
 
-const MAP_WIDTH : usize = 100;
-const MAP_HEIGHT : usize = 100; // probably should be larger, but let's go with it
+const MAP_WIDTH: usize = 100;
+const MAP_HEIGHT: usize = 100; // probably should be larger, but let's go with it
 
 pub struct Dungeon {
     tiles: Vec<char>,
@@ -12,7 +12,7 @@ pub struct Dungeon {
 impl Dungeon {
     fn new() -> Dungeon {
         Dungeon {
-            tiles: vec!['#'; MAP_WIDTH * MAP_HEIGHT]
+            tiles: vec!['#'; MAP_WIDTH * MAP_HEIGHT],
         }
     }
 
@@ -32,7 +32,14 @@ impl Dungeon {
         self.tiles[y * MAP_WIDTH + x] = val;
     }
 
-    pub fn flood_fill(self: &mut Dungeon, left: usize, top: usize, width: usize, height: usize, val: char) {
+    pub fn flood_fill(
+        self: &mut Dungeon,
+        left: usize,
+        top: usize,
+        width: usize,
+        height: usize,
+        val: char,
+    ) {
         for x in 0..width {
             for y in 0..height {
                 self.set_at(left + x, top + y, val);
@@ -58,7 +65,7 @@ fn generate_room(d: &mut Dungeon, left: usize, top: usize, width: usize, height:
         for y in 0..height {
             if d.get_at(left + x, top + y) != '#' {
                 // Bail on this location
-                return false
+                return false;
             }
         }
     }
@@ -72,15 +79,13 @@ struct Room {
     left: usize,
     top: usize,
     width: usize,
-    height: usize
+    height: usize,
 }
 
 impl PartialEq for Room {
     fn eq(&self, other: &Room) -> bool {
-        self.left == other.left &&
-        self.top == other.top &&
-        self.width == other.width &&
-        self.height == other.height
+        self.left == other.left && self.top == other.top && self.width == other.width
+            && self.height == other.height
     }
 }
 
@@ -117,7 +122,12 @@ pub fn generate_map() -> Dungeon {
 
         if generate_room(&mut d, x, y, room_width, room_height) {
             // Track for later, so we can draw hallways
-            rooms.push(Room { left: x, top: y, width: room_width, height: room_height });
+            rooms.push(Room {
+                left: x,
+                top: y,
+                width: room_width,
+                height: room_height,
+            });
         }
     }
 
@@ -145,9 +155,19 @@ mod dungeon_tests {
 
     #[test]
     fn room_equality() {
-        let a = ::map::Room { left: 10, top: 10, width: 100, height: 55 };
+        let a = ::map::Room {
+            left: 10,
+            top: 10,
+            width: 100,
+            height: 55,
+        };
         assert!(a == a);
-        let b = ::map::Room { left: 9, top: 10, width: 100, height: 55 };
+        let b = ::map::Room {
+            left: 9,
+            top: 10,
+            width: 100,
+            height: 55,
+        };
         assert!(a != b);
     }
 

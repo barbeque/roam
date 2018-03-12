@@ -1,16 +1,16 @@
-extern crate roam;
 extern crate pancurses;
-use pancurses::{initscr, endwin, Input};
-use roam::map::{Dungeon, generate_map};
-use roam::entity::{Entity};
-use roam::update::{move_player};
+extern crate roam;
+use pancurses::{endwin, initscr, Input};
+use roam::map::{generate_map, Dungeon};
+use roam::entity::Entity;
+use roam::update::move_player;
 
 struct GameState {
     // TODO: this probably should be moved into the lib as well
     offset_x: i32,
     offset_y: i32,
     player: Entity,
-    dungeon: Dungeon
+    dungeon: Dungeon,
 }
 impl GameState {
     fn new(dungeon: Dungeon) -> GameState {
@@ -18,7 +18,7 @@ impl GameState {
             offset_x: 0,
             offset_y: 0,
             player: Entity::new(),
-            dungeon: dungeon
+            dungeon: dungeon,
         }
     }
 }
@@ -65,8 +65,14 @@ fn raster_screen(window: &pancurses::Window, state: &GameState) {
         window.mvprintw(max_y - 1, x, "*");
     }
 
-    window.mvprintw(max_y - 1, 3,
-        &format!("HP: {}/{}", state.player.hit_points, state.player.max_hit_points));
+    window.mvprintw(
+        max_y - 1,
+        3,
+        &format!(
+            "HP: {}/{}",
+            state.player.hit_points, state.player.max_hit_points
+        ),
+    );
 }
 
 fn main() {
@@ -89,27 +95,41 @@ fn main() {
         window.refresh();
 
         match window.getch() {
-            Some(Input::Character(c)) => {
-                match c {
-                    'h' => { move_player(&mut game_state.player, &game_state.dungeon, -1, 0); },
-                    'j' => { move_player(&mut game_state.player, &game_state.dungeon, 0, 1); },
-                    'k' => { move_player(&mut game_state.player, &game_state.dungeon, 0, -1); },
-                    'l' => { move_player(&mut game_state.player, &game_state.dungeon, 1, 0); },
-                    _ => break
+            Some(Input::Character(c)) => match c {
+                'h' => {
+                    move_player(&mut game_state.player, &game_state.dungeon, -1, 0);
                 }
+                'j' => {
+                    move_player(&mut game_state.player, &game_state.dungeon, 0, 1);
+                }
+                'k' => {
+                    move_player(&mut game_state.player, &game_state.dungeon, 0, -1);
+                }
+                'l' => {
+                    move_player(&mut game_state.player, &game_state.dungeon, 1, 0);
+                }
+                _ => break,
             },
-            Some(Input::KeyLeft) => { move_player(&mut game_state.player, &game_state.dungeon, -1, 0); },
-            Some(Input::KeyUp) => { move_player(&mut game_state.player, &game_state.dungeon, 0, -1); },
-            Some(Input::KeyDown) => { move_player(&mut game_state.player, &game_state.dungeon, 0, 1); },
-            Some(Input::KeyRight) => { move_player(&mut game_state.player, &game_state.dungeon, 1, 0); },
+            Some(Input::KeyLeft) => {
+                move_player(&mut game_state.player, &game_state.dungeon, -1, 0);
+            }
+            Some(Input::KeyUp) => {
+                move_player(&mut game_state.player, &game_state.dungeon, 0, -1);
+            }
+            Some(Input::KeyDown) => {
+                move_player(&mut game_state.player, &game_state.dungeon, 0, 1);
+            }
+            Some(Input::KeyRight) => {
+                move_player(&mut game_state.player, &game_state.dungeon, 1, 0);
+            }
             Some(Input::KeyDC) => break,
             Some(Input::KeyResize) => {
                 pancurses::resize_term(0, 0);
             }
             Some(input) => {
                 window.addstr(&format!("{:?}", input));
-            },
-            None => ()
+            }
+            None => (),
         }
     }
 
