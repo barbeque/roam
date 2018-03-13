@@ -35,8 +35,14 @@ fn overlaps_1d(start1: i32, length1: i32, start2: i32, length2: i32) -> bool {
 pub struct Rect {
     pub x: i32,
     pub y: i32,
-    pub width: i32,
+    pub width: i32, // TODO: maybe u32 is best
     pub height: i32,
+}
+
+impl Rect {
+    pub fn centre(&self) -> (i32, i32) {
+        (self.x + self.width / 2, self.y + self.height / 2)
+    }
 }
 
 impl PartialEq for Rect {
@@ -73,6 +79,13 @@ mod tests {
         assert_eq!(manhattan_distance(-2, 2, 0, 0), 4);
         assert_eq!(manhattan_distance(-2, -2, 0, 0), 4);
         assert_eq!(manhattan_distance(0, 0, 0, 0), 0);
+    }
+    #[test]
+    fn rect_centrepoint() {
+        let r = Rect { x: 10, y: 20, width: 100, height: 36 };
+        let (cx, cy) = r.centre();
+        assert_eq!(cx, 60);
+        assert_eq!(cy, 38);
     }
     #[test]
     fn rect_equality() {
