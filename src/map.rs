@@ -10,6 +10,7 @@ const MAP_HEIGHT: usize = 100; // probably should be larger, but let's go with i
 pub struct Dungeon {
     tiles: Vec<char>,
 }
+type Room = Rect;
 
 impl Dungeon {
     fn new() -> Dungeon {
@@ -87,7 +88,7 @@ pub fn generate_map() -> Dungeon {
     let number_of_rooms = 35;
     let minimum_room_size = 4;
 
-    let mut rooms = Vec::<Rect>::new();
+    let mut rooms = Vec::<Room>::new();
 
     for _i in 0..number_of_rooms {
         let x = x_range.sample(&mut rng);
@@ -110,7 +111,7 @@ pub fn generate_map() -> Dungeon {
 
         if generate_room(&mut d, x, y, room_width, room_height) {
             // Track for later, so we can draw hallways
-            rooms.push(Rect {
+            rooms.push(Room {
                 x: x as i32,
                 y: y as i32,
                 width: room_width as i32,
