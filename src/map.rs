@@ -2,6 +2,8 @@ use rand;
 use rand::Rng;
 use rand::distributions::{Range, Sample};
 
+use coordinate_utils::Rect;
+
 const MAP_WIDTH: usize = 100;
 const MAP_HEIGHT: usize = 100; // probably should be larger, but let's go with it
 
@@ -75,20 +77,6 @@ fn generate_room(d: &mut Dungeon, left: usize, top: usize, width: usize, height:
     true
 }
 
-struct Room {
-    left: usize,
-    top: usize,
-    width: usize,
-    height: usize,
-}
-
-impl PartialEq for Room {
-    fn eq(&self, other: &Room) -> bool {
-        self.left == other.left && self.top == other.top && self.width == other.width
-            && self.height == other.height
-    }
-}
-
 pub fn generate_map() -> Dungeon {
     let mut d = Dungeon::new();
     let mut rng = rand::thread_rng();
@@ -99,7 +87,7 @@ pub fn generate_map() -> Dungeon {
     let number_of_rooms = 35;
     let minimum_room_size = 4;
 
-    let mut rooms = Vec::<Room>::new();
+    let mut rooms = Vec::<Rect>::new();
 
     for _i in 0..number_of_rooms {
         let x = x_range.sample(&mut rng);
@@ -122,11 +110,11 @@ pub fn generate_map() -> Dungeon {
 
         if generate_room(&mut d, x, y, room_width, room_height) {
             // Track for later, so we can draw hallways
-            rooms.push(Room {
-                left: x,
-                top: y,
-                width: room_width,
-                height: room_height,
+            rooms.push(Rect {
+                x: x as i32,
+                y: y as i32,
+                width: room_width as i32,
+                height: room_height as i32,
             });
         }
     }
@@ -151,24 +139,6 @@ mod dungeon_tests {
         let dungeon = ::map::Dungeon::new();
         assert!(dungeon.get_width() > 0);
         assert!(dungeon.get_height() > 0);
-    }
-
-    #[test]
-    fn room_equality() {
-        let a = ::map::Room {
-            left: 10,
-            top: 10,
-            width: 100,
-            height: 55,
-        };
-        assert!(a == a);
-        let b = ::map::Room {
-            left: 9,
-            top: 10,
-            width: 100,
-            height: 55,
-        };
-        assert!(a != b);
     }
 
     #[test]
