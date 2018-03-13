@@ -41,14 +41,19 @@ pub struct Rect {
 
 impl PartialEq for Rect {
     fn eq(self: &Rect, other: &Rect) -> bool {
-        self.x == other.x && self.y == other.y && self.width == other.width && self.height == other.height
+        self.x == other.x && self.y == other.y && self.width == other.width
+            && self.height == other.height
     }
 }
 
 use std::fmt;
 impl fmt::Debug for Rect {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Rect ( {}, {}: {} x {})", self.x, self.y, self.width, self.height)
+        write!(
+            f,
+            "Rect ( {}, {}: {} x {})",
+            self.x, self.y, self.width, self.height
+        )
     }
 }
 
@@ -71,8 +76,18 @@ mod tests {
     }
     #[test]
     fn rect_equality() {
-        let r = Rect { x: 13, y: 13, width: 46, height: 306 };
-        let q = Rect { x: 14, y: 13, width: 46, height: 306 };
+        let r = Rect {
+            x: 13,
+            y: 13,
+            width: 46,
+            height: 306,
+        };
+        let q = Rect {
+            x: 14,
+            y: 13,
+            width: 46,
+            height: 306,
+        };
         assert_eq!(r, r);
         assert_ne!(r, q);
     }
@@ -99,8 +114,18 @@ mod tests {
 
         assert!(overlaps(&r, &collides));
         assert!(!overlaps(&r, &no_overlap));
-        assert!(overlaps_horizontal(r.x, r.width, collides.x, collides.width));
-        assert!(overlaps_vertical(r.y, r.height, collides.y, collides.height));
+        assert!(overlaps_horizontal(
+            r.x,
+            r.width,
+            collides.x,
+            collides.width
+        ));
+        assert!(overlaps_vertical(
+            r.y,
+            r.height,
+            collides.y,
+            collides.height
+        ));
     }
     #[test]
     fn basic_horizontal_overlap() {
