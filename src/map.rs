@@ -151,11 +151,11 @@ pub fn generate_map() -> Dungeon {
 
         if overlaps_vertical(room_a.y, room_a.height, room_b.y, room_b.height) {
             // parallel: east-west
-            let (start_y, range_y) = find_overlap_1d(room_a.y, room_a.height, room_b.y, room_b.height);
+            let (start_y, range_y) = find_overlap_1d(room_a.y, room_a.height - 1, room_b.y, room_b.height - 1);
             let y = Range::<i32>::new(start_y, start_y + range_y).sample(&mut rng);
             generate_hallway_eastwest(room_a.centre().0, room_b.centre().0, y, &mut d);
         }
-        else if overlaps_horizontal(room_a.x, room_a.width, room_b.y, room_b.width) {
+        else if overlaps_horizontal(room_a.x, room_a.width, room_b.x, room_b.width) {
             // parallel: north-south
             let (start_x, range_x) = find_overlap_1d(room_a.x, room_a.width, room_b.x, room_b.width);
             let x = Range::<i32>::new(start_x, start_x + range_x).sample(&mut rng);
