@@ -113,7 +113,7 @@ pub fn generate_map() -> Dungeon {
         let x = x_range.sample(&mut rng);
         let y = y_range.sample(&mut rng);
         let max_width = (d.get_width() - 1) - x;
-        let max_height = (d.get_height() - 1) - y;
+        let max_height = ((d.get_height() - 1) - y) / 2;
 
         if max_height <= minimum_room_size || max_width <= minimum_room_size {
             // FIXME: use a smarter range instead of this hack
@@ -123,8 +123,6 @@ pub fn generate_map() -> Dungeon {
         let mut width_range = Range::<usize>::new(minimum_room_size, max_width);
         let mut height_range = Range::<usize>::new(minimum_room_size, max_height);
 
-        // FIXME: i feel like rooms should be 'wider' and not 'taller' in general
-        // to be more rogue-ish
         let room_width = width_range.sample(&mut rng);
         let room_height = height_range.sample(&mut rng);
 
@@ -157,7 +155,7 @@ pub fn generate_map() -> Dungeon {
         }
         else if overlaps_horizontal(room_a.x, room_a.width, room_b.x, room_b.width) {
             // parallel: north-south
-            let (start_x, range_x) = find_overlap_1d(room_a.x, room_a.width, room_b.x, room_b.width);
+            let (start_x, range_x) = find_overlap_1d(room_a.x, room_a.width - 1, room_b.x, room_b.width - 1);
             let x = Range::<i32>::new(start_x, start_x + range_x).sample(&mut rng);
             generate_hallway_northsouth(room_a.centre().1, room_b.centre().1, x, &mut d);
         }
