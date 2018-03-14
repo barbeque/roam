@@ -168,24 +168,55 @@ pub fn generate_map() -> Dungeon {
 
 #[cfg(test)]
 mod dungeon_tests {
+    use map::{Dungeon, generate_hallway_eastwest, generate_hallway_northsouth};
     #[test]
     fn dimensions_are_nonzero() {
-        let dungeon = ::map::Dungeon::new();
+        let dungeon = Dungeon::new();
         assert!(dungeon.get_width() > 0);
         assert!(dungeon.get_height() > 0);
     }
 
     #[test]
     fn get_at_set_at_works() {
-        let mut dungeon = ::map::Dungeon::new();
+        let mut dungeon = Dungeon::new();
         assert_eq!(dungeon.get_at(0, 0), '#');
         dungeon.set_at(0, 0, '&');
         assert_eq!(dungeon.get_at(0, 0), '&');
     }
 
     #[test]
+    fn generate_hallways_east_west_works() {
+        let mut dungeon = Dungeon::new();
+        generate_hallway_eastwest(25, 50, 10, &mut dungeon);
+        assert_eq!(dungeon.get_at(24, 10), '#');
+        assert_eq!(dungeon.get_at(25, 10), '.');
+        assert_eq!(dungeon.get_at(50, 10), '.');
+        assert_eq!(dungeon.get_at(51, 10), '#'); // Make sure it didn't run off the end
+        for x in 0..dungeon.get_width() {
+            // Make sure it didn't draw any hallways above or below
+            assert_eq!(dungeon.get_at(x, 9), '#');
+            assert_eq!(dungeon.get_at(x, 11), '#');
+        }
+    }
+
+    #[test]
+    fn generate_hallways_north_south_works() {
+        let mut dungeon = Dungeon::new();
+        generate_hallway_northsouth(25, 50, 10, &mut dungeon);
+        assert_eq!(dungeon.get_at(10, 24), '#');
+        assert_eq!(dungeon.get_at(10, 25), '.');
+        assert_eq!(dungeon.get_at(10, 50), '.');
+        assert_eq!(dungeon.get_at(10, 51), '#'); // Make sure it didn't run off the end
+        for y in 0..dungeon.get_height() {
+            // Make sure it didn't draw any hallways west or east
+            assert_eq!(dungeon.get_at(9, y), '#');
+            assert_eq!(dungeon.get_at(11, y), '#');
+        }
+    }
+
+    #[test]
     fn flood_fill_works() {
-        let mut dungeon = ::map::Dungeon::new();
+        let mut dungeon = Dungeon::new();
 
         dungeon.flood_fill(10, 10, 10, 10, '$');
         for x in 10..20 {
