@@ -1,3 +1,5 @@
+use std::cmp;
+
 pub fn manhattan_distance(x1: i32, y1: i32, x2: i32, y2: i32) -> i32 {
     let dx = i32::abs(x2 - x1);
     let dy = i32::abs(y2 - y1);
@@ -30,6 +32,33 @@ fn overlaps_1d(start1: i32, length1: i32, start2: i32, length2: i32) -> bool {
         return false;
     }
     true
+}
+
+// Returns (start, length) of the overlap on this axis
+pub fn find_overlap_1d(start1: i32, length1: i32, start2: i32, length2: i32) -> (i32, i32) {
+    if !overlaps_1d(start1, length1, start2, length2) {
+        panic!("must pass overlaps_1d in order to be used here");
+    }
+
+    let start = cmp::min(start1, start2);
+    let finish = cmp::min(start1 + length1, start2 + length2);
+
+    // this can probably be optimized, by picking a smaller 'finish,'
+    // and larger 'start,' but let's get it working first
+    let mut length = 0;
+    let mut started_at = -1;
+
+    for i in start..(finish + 1) {
+        if i >= start1 && i >= start2 && i <= (start1 + length1) && i <= (start2 + length2) {
+            // Within the overlap range
+            if started_at < 0 {
+                started_at = i;
+            }
+            length += 1
+        }
+    }
+
+    (started_at, length)
 }
 
 pub struct Rect {
@@ -183,6 +212,10 @@ mod tests {
             no_overlap_vertical.y,
             no_overlap_vertical.height
         ));
+    }
+    #[test]
+    fn overlap_range() {
+        assert_eq!(find_overlap_1d(0, 6, 2, 3), (2, 4)); // 2, 3, 4, 5
     }
     #[test]
     fn pythagorean_distance_is_sane() {

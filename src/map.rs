@@ -1,8 +1,9 @@
 use rand;
 use rand::Rng;
 use rand::distributions::{Range, Sample};
+use std::cmp;
 
-use coordinate_utils::Rect;
+use coordinate_utils::{Rect, overlaps_horizontal, overlaps_vertical, find_overlap_1d};
 
 const MAP_WIDTH: usize = 100;
 const MAP_HEIGHT: usize = 100; // probably should be larger, but let's go with it
@@ -78,6 +79,24 @@ fn generate_room(d: &mut Dungeon, left: usize, top: usize, width: usize, height:
     true
 }
 
+fn generate_hallway_eastwest(x1: i32, x2: i32, y: i32, dungeon: &mut Dungeon) {
+    // TODO: write a bresenham
+    let start = cmp::min(x1, x2);
+    let finish = cmp::max(x1, x2);
+    for x in start..(finish + 1) {
+        dungeon.set_at(x as usize, y as usize, '.');
+    }
+}
+
+fn generate_hallway_northsouth(y1: i32, y2: i32, x: i32, dungeon: &mut Dungeon) {
+    // TODO: write a bresenham
+    let start = cmp::min(y1, y2);
+    let finish = cmp::max(y1, y2);
+    for y in start..(finish + 1) {
+        dungeon.set_at(x as usize, y as usize, '.');
+    }
+}
+
 pub fn generate_map() -> Dungeon {
     let mut d = Dungeon::new();
     let mut rng = rand::thread_rng();
@@ -120,6 +139,7 @@ pub fn generate_map() -> Dungeon {
         }
     }
 
+    // sketch some hallways between rooms, because why not?
     let hallways = 20;
     for _i in 0..hallways {
         let room_a = rng.choose(&rooms).unwrap();
@@ -127,6 +147,19 @@ pub fn generate_map() -> Dungeon {
 
         if room_a == room_b {
             continue; // bail on this one
+        }
+
+        if overlaps_vertical(room_a.y, room_a.height, room_b.y, room_b.height) {
+            // parallel: east-west
+            let (start_y, range_y) = find_overlap_1d(room_a.y, room_a.height, room_b.y, room_b.height);
+            let y = Range::<i32>::new(start_y, start_y + range_y).sample(&mut rng);
+            generate_hallway_eastwest(room_a.centre().0, room_b.centre().0, y, &mut d);
+        }
+        else if overlaps_horizontal(room_a.x, room_a.width, room_b.y, room_b.width) {
+            // parallel: north-south
+            let (start_x, range_x) = find_overlap_1d(room_a.x, room_a.width, room_b.x, room_b.width);
+            let x = Range::<i32>::new(start_x, start_x + range_x).sample(&mut rng);
+            generate_hallway_northsouth(room_a.centre().1, room_b.centre().1, x, &mut d);
         }
     }
 
