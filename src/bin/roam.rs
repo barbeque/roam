@@ -67,8 +67,13 @@ fn update_scrolling(game_state: &mut GameState, window: &pancurses::Window) {
 }
 
 fn raster_entity(window: &pancurses::Window, state: &GameState, entity: &Entity) {
+    window.attrset(pancurses::Attribute::Bold);
+
     let (screen_x, screen_y) = get_screen_loc_for_entity(&entity, &state);
-    window.mvprintw(screen_y, screen_x, &entity.view.to_string());
+    window.mv(screen_y, screen_x);
+    window.addch(entity.view);
+
+    window.attrset(pancurses::Attribute::Normal);
 }
 
 fn raster_screen(window: &pancurses::Window, state: &GameState) {
