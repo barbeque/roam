@@ -23,10 +23,51 @@ impl GameState {
     }
 }
 
-fn raster_entity(window: &pancurses::Window, state: &GameState, entity: &Entity) {
+fn get_screen_loc_for_entity(entity: &Entity, game_state: &GameState) -> (i32, i32) {
     // figure out where on screen the real position is
-    let screen_x = entity.location_x - state.offset_x;
-    let screen_y = entity.location_y - state.offset_y;
+    let screen_x = entity.location_x - game_state.offset_x;
+    let screen_y = entity.location_y - game_state.offset_y;
+    (screen_x, screen_y)
+}
+
+fn update_scrolling(game_state: &mut GameState, window: &pancurses::Window) {
+    // Run just before the game state to make sure the window
+    // can still see the player
+    
+    // Update scroll positions
+    let max_x = window.get_max_x();
+    let max_y = window.get_max_y();
+    const SCROLL_EDGE : i32 = 6;
+    const SCROLL_AMOUNT : i32 = 4;
+
+    loop {
+        // Repeatedly attempt to scroll the player into view
+
+        let (screen_x, screen_y) = get_screen_loc_for_entity(&game_state.player, &game_state);
+        
+        if screen_x < SCROLL_EDGE {
+            game_state.offset_x -= SCROLL_AMOUNT;
+            continue; // we might need more scrolling still
+        }
+        if screen_y < SCROLL_EDGE {
+            game_state.offset_y -= SCROLL_AMOUNT;
+            continue;
+        }
+        if screen_x > max_x - SCROLL_EDGE {
+            game_state.offset_x += SCROLL_AMOUNT;
+            continue;
+        }
+        if screen_y > max_y - SCROLL_EDGE {
+            game_state.offset_y += SCROLL_AMOUNT;
+            continue;
+        }
+
+        break; // No more scrolling was needed
+    }
+}
+
+fn raster_entity(window: &pancurses::Window, state: &GameState, entity: &Entity) {
+    let (screen_x, screen_y) = get_screen_loc_for_entity(&entity, &state);
     window.mvprintw(screen_y, screen_x, &entity.view.to_string());
 }
 
@@ -91,6 +132,7 @@ fn main() {
 
     // Continue
     loop {
+        update_scrolling(&mut game_state, &window);
         raster_screen(&window, &game_state);
         window.refresh();
 
