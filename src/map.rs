@@ -137,6 +137,8 @@ pub fn generate_map() -> Dungeon {
         }
     }
 
+    let mut room_connections = Vec::<(&Room, &Room)>::new();
+
     // sketch some hallways between rooms, because why not?
     let hallways = 20;
     for _i in 0..hallways {
@@ -152,19 +154,32 @@ pub fn generate_map() -> Dungeon {
             let (start_y, range_y) = find_overlap_1d(room_a.y, room_a.height, room_b.y, room_b.height);
             let y = Range::<i32>::new(start_y, start_y + range_y).sample(&mut rng);
             generate_hallway_eastwest(room_a.centre().0, room_b.centre().0, y, &mut d);
+
+            room_connections.push((&room_a, &room_b));
         }
         else if overlaps_horizontal(room_a.x, room_a.width, room_b.x, room_b.width) {
             // parallel: north-south
             let (start_x, range_x) = find_overlap_1d(room_a.x, room_a.width, room_b.x, room_b.width);
             let x = Range::<i32>::new(start_x, start_x + range_x).sample(&mut rng);
             generate_hallway_northsouth(room_a.centre().1, room_b.centre().1, x, &mut d);
-        }
 
-        // TODO: should we track 'accessible' rooms so we don't
-        // put important stuff in isolated ones?
+            room_connections.push((&room_a, &room_b));
+        }
     }
 
+    // Now we have all room connections in room_connections,
+    // so we know which rooms are isolated and should not have
+    // important stuff in them
+    let isolated_rooms = find_isolated_rooms(&rooms, &room_connections);
+
     d
+}
+
+pub fn find_isolated_rooms<'a>(all_rooms: &'a Vec<Room>, connections: &Vec<(&Room, &Room)>) -> Vec<&'a Room> {
+    all_rooms
+        .iter()
+        .filter(|&room| connections.iter().any(|&(l, r)| l != room && r != room))
+        .collect()
 }
 
 #[cfg(test)]
@@ -229,5 +244,22 @@ mod dungeon_tests {
         assert_eq!(dungeon.get_at(0, 0), '#');
         assert_eq!(dungeon.get_at(9, 10), '#');
         assert_eq!(dungeon.get_at(20, 20), '#');
+    }
+
+    #[test]
+    fn isolated_room_detection_works() {
+        use map::Room;
+        use map::find_isolated_rooms;
+
+        let room_a = Room { x: 10, y: 15, width: 5, height: 7 };
+        let room_b = Room { x: 10, y: 25, width: 5, height: 7 };
+        let room_c = Room { x: 20, y: 25, width: 3, height: 10 };
+        let all_rooms = vec![room_a, room_b, room_c];
+        let connected_rooms = vec![(&all_rooms[0], &all_rooms[1])];
+        let isolated_rooms = find_isolated_rooms(&all_rooms, &connected_rooms);
+        assert_eq!(isolated_rooms.len(), 1);
+
+        // Make sure it's room C
+        assert_eq!(&all_rooms[2], isolated_rooms[0]);
     }
 }
