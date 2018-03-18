@@ -51,6 +51,15 @@ impl Dungeon {
         }
     }
 
+    pub fn flood_fill_room(
+        self: &mut Dungeon,
+        room: &Room,
+        val: char,
+    ) {
+        // wtf, you can't do an overload?
+        self.flood_fill(room.x as usize, room.y as usize, room.width as usize, room.height as usize, val);
+    }
+
     pub fn find_room_tile(self: &Dungeon) -> (i32, i32) {
         for y in 0..MAP_HEIGHT {
             for x in 0..MAP_WIDTH {
@@ -171,14 +180,19 @@ pub fn generate_map() -> Dungeon {
     // so we know which rooms are isolated and should not have
     // important stuff in them
     let isolated_rooms = find_isolated_rooms(&rooms, &room_connections);
+    for isolated_room in &isolated_rooms {
+        d.flood_fill_room(&isolated_room, '/');
+    }
 
     d
 }
 
 pub fn find_isolated_rooms<'a>(all_rooms: &'a Vec<Room>, connections: &Vec<(&Room, &Room)>) -> Vec<&'a Room> {
+    // FIXME: This doesn't work for the case where a hallway 'passes through'
+    // another room that is otherwise disconnected... we need a better strategy
     all_rooms
         .iter()
-        .filter(|&room| connections.iter().any(|&(l, r)| l != room && r != room))
+        .filter(|&room| connections.iter().all(|&(l, r)| l != room && r != room))
         .collect()
 }
 
