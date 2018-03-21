@@ -111,7 +111,12 @@ mod tests {
     }
     #[test]
     fn rect_centrepoint() {
-        let r = Rect { x: 10, y: 20, width: 100, height: 36 };
+        let r = Rect {
+            x: 10,
+            y: 20,
+            width: 100,
+            height: 36,
+        };
         let (cx, cy) = r.centre();
         assert_eq!(cx, 60);
         assert_eq!(cy, 38);

@@ -33,18 +33,18 @@ fn get_screen_loc_for_entity(entity: &Entity, game_state: &GameState) -> (i32, i
 fn update_scrolling(game_state: &mut GameState, window: &pancurses::Window) {
     // Run just before the game state to make sure the window
     // can still see the player
-    
+
     // Update scroll positions
     let max_x = window.get_max_x();
     let max_y = window.get_max_y();
-    const SCROLL_EDGE : i32 = 6;
-    const SCROLL_AMOUNT : i32 = 4;
+    const SCROLL_EDGE: i32 = 6;
+    const SCROLL_AMOUNT: i32 = 4;
 
     loop {
         // Repeatedly attempt to scroll the player into view
 
         let (screen_x, screen_y) = get_screen_loc_for_entity(&game_state.player, &game_state);
-        
+
         if screen_x < SCROLL_EDGE {
             game_state.offset_x -= SCROLL_AMOUNT;
             continue; // we might need more scrolling still

@@ -3,7 +3,7 @@ use rand::Rng;
 use rand::distributions::{Range, Sample};
 use std::cmp;
 
-use coordinate_utils::{Rect, overlaps_horizontal, overlaps_vertical, find_overlap_1d};
+use coordinate_utils::{overlaps_horizontal, overlaps_vertical, Rect, find_overlap_1d};
 
 const MAP_WIDTH: usize = 100;
 const MAP_HEIGHT: usize = 100; // probably should be larger, but let's go with it
@@ -51,13 +51,15 @@ impl Dungeon {
         }
     }
 
-    pub fn flood_fill_room(
-        self: &mut Dungeon,
-        room: &Room,
-        val: char,
-    ) {
+    pub fn flood_fill_room(self: &mut Dungeon, room: &Room, val: char) {
         // wtf, you can't do an overload?
-        self.flood_fill(room.x as usize, room.y as usize, room.width as usize, room.height as usize, val);
+        self.flood_fill(
+            room.x as usize,
+            room.y as usize,
+            room.width as usize,
+            room.height as usize,
+            val,
+        );
     }
 
     pub fn find_room_tile(self: &Dungeon) -> (i32, i32) {
@@ -160,15 +162,16 @@ pub fn generate_map() -> Dungeon {
 
         if overlaps_vertical(room_a.y, room_a.height, room_b.y, room_b.height) {
             // parallel: east-west
-            let (start_y, range_y) = find_overlap_1d(room_a.y, room_a.height, room_b.y, room_b.height);
+            let (start_y, range_y) =
+                find_overlap_1d(room_a.y, room_a.height, room_b.y, room_b.height);
             let y = Range::<i32>::new(start_y, start_y + range_y).sample(&mut rng);
             generate_hallway_eastwest(room_a.centre().0, room_b.centre().0, y, &mut d);
 
             room_connections.push((&room_a, &room_b));
-        }
-        else if overlaps_horizontal(room_a.x, room_a.width, room_b.x, room_b.width) {
+        } else if overlaps_horizontal(room_a.x, room_a.width, room_b.x, room_b.width) {
             // parallel: north-south
-            let (start_x, range_x) = find_overlap_1d(room_a.x, room_a.width, room_b.x, room_b.width);
+            let (start_x, range_x) =
+                find_overlap_1d(room_a.x, room_a.width, room_b.x, room_b.width);
             let x = Range::<i32>::new(start_x, start_x + range_x).sample(&mut rng);
             generate_hallway_northsouth(room_a.centre().1, room_b.centre().1, x, &mut d);
 
@@ -187,7 +190,10 @@ pub fn generate_map() -> Dungeon {
     d
 }
 
-pub fn find_isolated_rooms<'a>(all_rooms: &'a Vec<Room>, connections: &Vec<(&Room, &Room)>) -> Vec<&'a Room> {
+pub fn find_isolated_rooms<'a>(
+    all_rooms: &'a Vec<Room>,
+    connections: &Vec<(&Room, &Room)>,
+) -> Vec<&'a Room> {
     // FIXME: This doesn't work for the case where a hallway 'passes through'
     // another room that is otherwise disconnected... we need a better strategy
     all_rooms
@@ -198,7 +204,7 @@ pub fn find_isolated_rooms<'a>(all_rooms: &'a Vec<Room>, connections: &Vec<(&Roo
 
 #[cfg(test)]
 mod dungeon_tests {
-    use map::{Dungeon, generate_hallway_eastwest, generate_hallway_northsouth};
+    use map::{generate_hallway_eastwest, generate_hallway_northsouth, Dungeon};
     #[test]
     fn dimensions_are_nonzero() {
         let dungeon = Dungeon::new();
@@ -265,9 +271,24 @@ mod dungeon_tests {
         use map::Room;
         use map::find_isolated_rooms;
 
-        let room_a = Room { x: 10, y: 15, width: 5, height: 7 };
-        let room_b = Room { x: 10, y: 25, width: 5, height: 7 };
-        let room_c = Room { x: 20, y: 25, width: 3, height: 10 };
+        let room_a = Room {
+            x: 10,
+            y: 15,
+            width: 5,
+            height: 7,
+        };
+        let room_b = Room {
+            x: 10,
+            y: 25,
+            width: 5,
+            height: 7,
+        };
+        let room_c = Room {
+            x: 20,
+            y: 25,
+            width: 3,
+            height: 10,
+        };
         let all_rooms = vec![room_a, room_b, room_c];
         let connected_rooms = vec![(&all_rooms[0], &all_rooms[1])];
         let isolated_rooms = find_isolated_rooms(&all_rooms, &connected_rooms);
