@@ -3,7 +3,7 @@ use rand::Rng;
 use rand::distributions::{Range, Sample};
 use std::cmp;
 
-use coordinate_utils::{overlaps_horizontal, overlaps_vertical, Rect, find_overlap_1d};
+use coordinate_utils::{overlaps_horizontal, overlaps_vertical, Rect, find_overlap_1d, overlaps};
 
 const MAP_WIDTH: usize = 100;
 const MAP_HEIGHT: usize = 100; // probably should be larger, but let's go with it
@@ -12,6 +12,7 @@ pub struct Dungeon {
     tiles: Vec<char>,
 }
 type Room = Rect;
+type HallwayRecord = ((i32, i32), (i32, i32));
 
 impl Dungeon {
     fn new() -> Dungeon {
@@ -90,22 +91,28 @@ fn generate_room(d: &mut Dungeon, left: usize, top: usize, width: usize, height:
     true
 }
 
-fn generate_hallway_eastwest(x1: i32, x2: i32, y: i32, dungeon: &mut Dungeon) {
-    // TODO: write a bresenham
+fn generate_hallway_eastwest(x1: i32, x2: i32, y: i32, dungeon: &mut Dungeon, hallways: &mut Vec<HallwayRecord>) {
     let start = cmp::min(x1, x2);
     let finish = cmp::max(x1, x2);
     for x in start..(finish + 1) {
         dungeon.set_at(x as usize, y as usize, '.');
     }
+    hallways.push((
+        (start, y),
+        (finish, y)
+    ));
 }
 
-fn generate_hallway_northsouth(y1: i32, y2: i32, x: i32, dungeon: &mut Dungeon) {
-    // TODO: write a bresenham
+fn generate_hallway_northsouth(y1: i32, y2: i32, x: i32, dungeon: &mut Dungeon, hallways: &mut Vec<HallwayRecord>) {
     let start = cmp::min(y1, y2);
     let finish = cmp::max(y1, y2);
     for y in start..(finish + 1) {
         dungeon.set_at(x as usize, y as usize, '.');
     }
+    hallways.push((
+        (x, start),
+        (x, finish)
+    ));
 }
 
 pub fn generate_map() -> Dungeon {
@@ -149,6 +156,7 @@ pub fn generate_map() -> Dungeon {
     }
 
     let mut room_connections = Vec::<(&Room, &Room)>::new();
+    let mut recorded_hallways = Vec::<HallwayRecord>::new();
 
     // sketch some hallways between rooms, because why not?
     let hallways = 20;
@@ -165,7 +173,7 @@ pub fn generate_map() -> Dungeon {
             let (start_y, range_y) =
                 find_overlap_1d(room_a.y, room_a.height, room_b.y, room_b.height);
             let y = Range::<i32>::new(start_y, start_y + range_y).sample(&mut rng);
-            generate_hallway_eastwest(room_a.centre().0, room_b.centre().0, y, &mut d);
+            generate_hallway_eastwest(room_a.centre().0, room_b.centre().0, y, &mut d, &mut recorded_hallways);
 
             room_connections.push((&room_a, &room_b));
         } else if overlaps_horizontal(room_a.x, room_a.width, room_b.x, room_b.width) {
@@ -173,7 +181,7 @@ pub fn generate_map() -> Dungeon {
             let (start_x, range_x) =
                 find_overlap_1d(room_a.x, room_a.width, room_b.x, room_b.width);
             let x = Range::<i32>::new(start_x, start_x + range_x).sample(&mut rng);
-            generate_hallway_northsouth(room_a.centre().1, room_b.centre().1, x, &mut d);
+            generate_hallway_northsouth(room_a.centre().1, room_b.centre().1, x, &mut d, &mut recorded_hallways);
 
             room_connections.push((&room_a, &room_b));
         }
@@ -182,7 +190,7 @@ pub fn generate_map() -> Dungeon {
     // Now we have all room connections in room_connections,
     // so we know which rooms are isolated and should not have
     // important stuff in them
-    let isolated_rooms = find_isolated_rooms(&rooms, &room_connections);
+    let isolated_rooms = find_isolated_rooms(&rooms, &room_connections, &recorded_hallways);
     for isolated_room in &isolated_rooms {
         d.flood_fill_room(&isolated_room, '/');
     }
@@ -193,18 +201,28 @@ pub fn generate_map() -> Dungeon {
 pub fn find_isolated_rooms<'a>(
     all_rooms: &'a Vec<Room>,
     connections: &Vec<(&Room, &Room)>,
+    hallways: &Vec<HallwayRecord>
 ) -> Vec<&'a Room> {
-    // FIXME: This doesn't work for the case where a hallway 'passes through'
-    // another room that is otherwise disconnected... we need a better strategy
     all_rooms
         .iter()
         .filter(|&room| connections.iter().all(|&(l, r)| l != room && r != room))
+        .filter(|&room| hallways.iter().all(|h| !room_overlaps_hallway(room, h)))
         .collect()
+}
+
+pub fn room_overlaps_hallway(room: &Room, hallway: &HallwayRecord) -> bool {
+    // Sort of a hack, checks if a hallway goes through a room
+    // so you don't end up with (A, B, C) + (A -> C) marking B as
+    // isolated, because it wasn't in the graph, but the hallway ran through
+    // it anyway..
+    let &((x1, y1), (x2, y2)) = hallway;
+    let hall_rect = Rect { x: x1, y: y1, width: (x2 - x1), height: (y2 - y1) };
+    overlaps(&room, &hall_rect)
 }
 
 #[cfg(test)]
 mod dungeon_tests {
-    use map::{generate_hallway_eastwest, generate_hallway_northsouth, Dungeon};
+    use map::{generate_hallway_eastwest, generate_hallway_northsouth, Dungeon, HallwayRecord};
     #[test]
     fn dimensions_are_nonzero() {
         let dungeon = Dungeon::new();
@@ -223,7 +241,8 @@ mod dungeon_tests {
     #[test]
     fn generate_hallways_east_west_works() {
         let mut dungeon = Dungeon::new();
-        generate_hallway_eastwest(25, 50, 10, &mut dungeon);
+        let mut hallways = Vec::<HallwayRecord>::new();
+        generate_hallway_eastwest(25, 50, 10, &mut dungeon, &mut hallways);
         assert_eq!(dungeon.get_at(24, 10), '#');
         assert_eq!(dungeon.get_at(25, 10), '.');
         assert_eq!(dungeon.get_at(50, 10), '.');
@@ -233,12 +252,14 @@ mod dungeon_tests {
             assert_eq!(dungeon.get_at(x, 9), '#');
             assert_eq!(dungeon.get_at(x, 11), '#');
         }
+        assert_eq!(hallways.len(), 1); // make sure a hallway was recorded
     }
 
     #[test]
     fn generate_hallways_north_south_works() {
         let mut dungeon = Dungeon::new();
-        generate_hallway_northsouth(25, 50, 10, &mut dungeon);
+        let mut hallways = Vec::<HallwayRecord>::new();
+        generate_hallway_northsouth(25, 50, 10, &mut dungeon, &mut hallways);
         assert_eq!(dungeon.get_at(10, 24), '#');
         assert_eq!(dungeon.get_at(10, 25), '.');
         assert_eq!(dungeon.get_at(10, 50), '.');
@@ -248,6 +269,7 @@ mod dungeon_tests {
             assert_eq!(dungeon.get_at(9, y), '#');
             assert_eq!(dungeon.get_at(11, y), '#');
         }
+        assert_eq!(hallways.len(), 1); // make sure a hallway was recorded
     }
 
     #[test]
@@ -269,6 +291,7 @@ mod dungeon_tests {
     #[test]
     fn isolated_room_detection_works() {
         use map::Room;
+        use map::HallwayRecord;
         use map::find_isolated_rooms;
 
         let room_a = Room {
@@ -291,7 +314,8 @@ mod dungeon_tests {
         };
         let all_rooms = vec![room_a, room_b, room_c];
         let connected_rooms = vec![(&all_rooms[0], &all_rooms[1])];
-        let isolated_rooms = find_isolated_rooms(&all_rooms, &connected_rooms);
+        let no_hallways = Vec::<HallwayRecord>::new();
+        let isolated_rooms = find_isolated_rooms(&all_rooms, &connected_rooms, &no_hallways);
         assert_eq!(isolated_rooms.len(), 1);
 
         // Make sure it's room C
