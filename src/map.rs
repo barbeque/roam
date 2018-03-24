@@ -195,6 +195,10 @@ pub fn generate_map() -> Dungeon {
         d.flood_fill_room(&isolated_room, '/');
     }
 
+    // Put important stuff in the other rooms.
+    // TODO: Pathfind to determine if a room is reachable from the player's
+    // starting location
+
     d
 }
 

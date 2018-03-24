@@ -3,7 +3,6 @@ use entity::Entity;
 
 // Game update functionality
 pub fn move_player(player: &mut Entity, dungeon: &Dungeon, dx: i32, dy: i32) -> bool {
-    // TODO: Scroll offset_x, offset_y as the player 'moves off screen'
     let proposed_x = player.location_x + dx; // TODO: collision ray in case dx > 1
     let proposed_y = player.location_y + dy; // TODO: collision ray in case dy > 1
 
