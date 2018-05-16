@@ -61,6 +61,7 @@ pub fn find_overlap_1d(start1: i32, length1: i32, start2: i32, length2: i32) -> 
     (started_at, length)
 }
 
+#[derive(PartialEq)]
 pub struct Rect {
     pub x: i32,
     pub y: i32,
@@ -71,13 +72,6 @@ pub struct Rect {
 impl Rect {
     pub fn centre(&self) -> (i32, i32) {
         (self.x + self.width / 2, self.y + self.height / 2)
-    }
-}
-
-impl PartialEq for Rect {
-    fn eq(self: &Rect, other: &Rect) -> bool {
-        self.x == other.x && self.y == other.y && self.width == other.width
-            && self.height == other.height
     }
 }
 
