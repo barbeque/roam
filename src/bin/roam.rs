@@ -38,7 +38,7 @@ fn update_scrolling(game_state: &mut GameState, window: &pancurses::Window) {
     let max_x = window.get_max_x();
     let max_y = window.get_max_y();
     const SCROLL_EDGE: i32 = 6;
-    const SCROLL_AMOUNT: i32 = 4;
+    const SCROLL_AMOUNT: i32 = 5;
 
     loop {
         // Repeatedly attempt to scroll the player into view
