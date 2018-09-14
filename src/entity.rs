@@ -1,3 +1,5 @@
+use item::Item;
+
 pub struct Entity {
     // An entity is any object that is present in the world.
     pub hit_points: i32,
@@ -5,6 +7,7 @@ pub struct Entity {
     pub location_x: i32,
     pub location_y: i32,
     pub view: char,
+    pub inventory: Vec<Item>
 }
 
 impl Entity {
@@ -16,6 +19,7 @@ impl Entity {
             location_x: 0,
             location_y: 0,
             view: '@',
+            inventory: Vec::<Item>::new()
         }
     }
 }
